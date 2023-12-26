@@ -1,10 +1,13 @@
 const express = require('express');
+const info = require('../util/info.js');
 const LoginSystem = require("../login/loginSystem.js");
 const router = express.Router();
 
 router.post("/signin", async (req, res)=>{
     try{
-        const {id, password, isRemember} = req.body;
+        const {id, password} = req.body;
+
+        isRemember = false;
 
         const module = new LoginSystem(id, password);
         const execute = await module.Login();
@@ -48,8 +51,8 @@ router.post("/signin", async (req, res)=>{
     }
     catch (err){
         console.log(err);
-        if(err == 'Nan') res.status(401).json({msg:'Non Account'});
-        else res.status(401).json({msg:'Format Error'});
+        if(err == 'Nan') res.status(400).json({msg:'Non Account'});
+        else res.status(500).json({msg:'Format Error'});
     }},
 );
 
@@ -90,12 +93,12 @@ router.post("/signup", async (req, res)=>{
             }
             else {
                 console.log("비밀번호 형식이 틀렸습니다.");
-                res.status(400).send('password pattern is not correct');
+                res.status(401).send('password pattern is not correct');
             }
         }
         catch (err){
             console.log(err);
-            res.status(401).send('Unexpected Error');
+            res.status(500).send('Unexpected Error');
         }
     },
 );

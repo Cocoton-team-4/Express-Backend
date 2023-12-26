@@ -15,6 +15,7 @@ const app = express();
 
 const indexRouter = require('./src/routes/');
 const userRouter = require('./src/routes/user');
+const postRouter = require('./src/routes/post');
 
 const sessionMiddleware = session({
     key : 'login',
@@ -45,10 +46,22 @@ app.use(sessionMiddleware);
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);
+app.use("/posting", postRouter);
 
-app.post("/test", (req, res) => {
-    console.log(req.session);
-    res.status(200).send("s");
+app.post("/test", async (req, res) => {
+    const Space = require('./models/space.js');
+    const User = require('./models/user.js');
+
+    const tmp = await Space.create();
+    const user = await User.findOne({
+        where : {
+            id : 1
+        }
+    });
+
+    await tmp.addUser(user);
+
+    res.status(200).json({msg: 'Non User'});
 });
 
 const httpserver = http.createServer(app);
