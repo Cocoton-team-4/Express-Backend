@@ -67,13 +67,16 @@ class LoginSystem{
             }
             },)
             .then(async (result) => {
-            const realPW = await Account.findOne({
-                attributes: ['password', 'UserId'],
-                raw: true,
-                where:{
-                    id,
-                },
-            },);
+            let realPW;
+            if(result != null){
+                realPW = await Account.findOne({
+                    attributes: ['password', 'UserId'],
+                    raw: true,
+                    where:{
+                        id,
+                    },
+                },);
+            }   
             if(realPW.password == result.hashed){
                 console.log("로그인 성공!");
                 bool = realPW.UserId;

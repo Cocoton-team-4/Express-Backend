@@ -1,6 +1,6 @@
 const express = require('express');
 const validCheck = require('../util/validCheck');
-const Post = require('../../models/post');
+const Note = require('../../models/note');
 const Space = require('../../models/space');
 const User = require('../../models/user');
 const filter = require("../util/filtering");
@@ -11,44 +11,36 @@ router.get('/:id', async (req, res) => {
     try{
         const handle = req.params.id;
         const userId = 1;
-        console.log(handle);
 
         if(validCheck.validCheck(handle, userId) == false){
             res.status(403).json({msg: 'Permission Not Allowed'});
             return;
         }
 
-        const postList = [];
+        const noteList = [];
 
-        const postings = await Post.findAll({
+        const notes = await Note.findAll({
             where : {
                 spaceId : handle
             }
         });
         
-        for(let i = 0; i<postings.length; i++){
-            const id = postings[i].id;
-            const plot = postings[i].plot;
-            const picture = postings[i].picture;
+        for(let i = 0; i<notes.length; i++){
+            const id = notes[i].id;
+            const plot = notes[i].plot;
             const author = await User.findOne({
-                where : {id : postings[i].author}
+                where : {id : notes[i].author}
             });
-            const date = postings[i].date;
-            postList.push({
+            noteList.push({
                 id : id,
                 plot : plot,
-                picture : picture,
-                author : author.name,
-                date : date
+                author : author
             });
         }
 
-        console.log(postList);
-
-        res.status(200).json({postList : postList});
+        res.status(200).json({noteList : noteList});
     }
     catch(e){
-        console.log(e);
         res.status(500).json({msg : "Bad"});
     }
 });
@@ -57,39 +49,26 @@ router.post('/:id', async (req, res) => {
     try{
         const handle = req.params.id;
         const userId = 1;
-        const {plot, picture, date} = req.body;
-        
-        console.log("plot : " + plot + ", picture : " + picture + ", date : " + date);
+        const {plot} = req.body;
 
         if(validCheck.validCheck(handle, userId) == false){
-            console.log("1번 걸림");
             res.status(403).json({msg: 'Permission Not Allowed'});
             return;
         }
 
         if(plot == null || plot.length < 20 || plot.length >= 1000){
-            console.log("2번 거릶");
             res.status(400).json({msg: 'Plot is too short or long'});
             return;
         }
 
         if(filter.checkAbuse(plot)){
-            console.log("3번 걸림");
             res.status(402).json({msg: 'Plot has an abuse word'});
             return;
         }
 
-        if(picture == null || date == null){
-            console.log("4번 걸림");
-            res.status(401).json({msg: 'Picture or date is essential'});
-            return;
-        }
-
-        const cur = await Post.create({
+        const cur = await Note.create({
             plot: plot,
-            picture : picture,
             author : userId,
-            date : date
         });
 
         const tmp = await Space.findOne({
@@ -98,9 +77,8 @@ router.post('/:id', async (req, res) => {
             }
         });
 
-        await tmp.addPost(cur);
-        
-        console.log("ㄱㄱ");
+        await tmp.addNote(cur);
+
         res.status(200).json({
             msg: 'successful Posted'
         });
@@ -116,14 +94,14 @@ router.put('/:id/:num', async (req, res) => {
         const handle = req.params.id;
         const num = req.params.num;
         const userId = 1;
-        const {plot, picture, date} = req.body;
+        const {plot} = req.body;
     
         if(validCheck.validCheck(handle, userId) == false){
             res.status(403).json({msg: 'Permission Not Allowed'});
             return;
         }
 
-        const posting = await Post.findOne({
+        const posting = await Note.findOne({
             where : {
                 id : num,
                 author : userId,
@@ -146,16 +124,9 @@ router.put('/:id/:num', async (req, res) => {
             return;
         }
 
-        if(picture == null){
-            res.status(401).json({msg: 'Picture is essential'});
-            return;
-        }
-
-        await Post.update({
+        await Note.update({
             plot: plot,
-            picture : picture,
             author : userId,
-            data : date
         });
 
         res.status(200).json({
@@ -180,7 +151,7 @@ router.delete('/:id/:num', async (req, res) => {
             return;
         }
 
-        const posting = await Post.findOne({
+        const posting = await Note.findOne({
             where : {
                 id : num,
                 author : userId,

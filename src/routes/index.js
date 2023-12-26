@@ -7,7 +7,7 @@ router.post("/signin", async (req, res)=>{
     try{
         const {id, password} = req.body;
 
-        isRemember = false;
+        console.log(id + " " + password);
 
         const module = new LoginSystem(id, password);
         const execute = await module.Login();
@@ -22,9 +22,7 @@ router.post("/signin", async (req, res)=>{
 
                     req.session.userId = execute;
                     req.session.isLogined = true;
-
-                    if(isRemember) req.session.cookie.maxAge = 86400000 * 14; //만약 로그인 상태 유지 옵션을 클릭해두면 14일간 유지
-                    else req.session.cookie.maxAge = 3600000; //기본 세션 만료 시간은 1시간
+                    req.session.cookie.maxAge = 3600000; //기본 세션 만료 시간은 1시간
                     req.session.save((error) => {
                         if (error) {
                             console.log(error);

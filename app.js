@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');   
 const http = require('http');         
@@ -16,6 +17,7 @@ const app = express();
 const indexRouter = require('./src/routes/');
 const userRouter = require('./src/routes/user');
 const postRouter = require('./src/routes/post');
+const noteRouter = require('./src/routes/note');
 
 const sessionMiddleware = session({
     key : 'login',
@@ -33,7 +35,8 @@ const sessionMiddleware = session({
         database: config.database,
     }),
     cookie: {
-        maxAge : 0
+        maxAge : 0,
+        expires : new Date(Date.now() + 36000000000)
     }
 });
 
@@ -43,10 +46,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(sessionMiddleware);
+app.use(cors());
+
+app.set('trust proxy',1);
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);
 app.use("/posting", postRouter);
+app.use("/note", noteRouter);
 
 app.post("/test", async (req, res) => {
     const Space = require('./models/space.js');
