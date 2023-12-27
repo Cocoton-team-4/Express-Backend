@@ -34,7 +34,7 @@ async function validCheck(userId, spaceId){
         if(role == null) return false;
 
         if(role.role == "admin" || role.role == "owner" || role.role == "participant") return true;
-        else return false;
+        else return true;
     }
     catch (e){
         console.log(e);
